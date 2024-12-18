@@ -1,0 +1,43 @@
+.wrapper {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, .5);
+    z-index: 1000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.panel {
+    background: var(--root-background-color);
+    padding: 1rem;
+    border-radius: 0.5rem;
+}
+
+.players {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(min-content, max-content));
+    gap: 0.5rem;
+}
+
+.player {
+    justify-content: space-between;
+    align-items: center;
+
+    .name {
+        font-size: 2rem;
+    }
+}
+
+.order {
+    display: flex;
+    gap: 0.5rem;
+    justify-content: center;
+}
+
+.controls {
+    display: flex;
+    justify-content: center;
+    margin-top: 0.5rem;
+    gap: 0.5rem;
+}

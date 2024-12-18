@@ -1,0 +1,30 @@
+.slider-selector {
+    display: flex;
+    position: relative;
+    padding: 8px 0;
+    width: 400px;
+    overflow: hidden;
+    scrollbar-width: none;
+    mask-image: linear-gradient(to left, rgba(0, 0, 0, 0.01) 0, white 10%, white 90%, rgba(0, 0, 0, 0.01) 100%);
+
+    .slider-selector__inner {
+        margin: 0 170px;
+        display: flex;
+        gap: 8px;
+        position: relative;
+        touch-action: none;
+    }
+
+    .slider-selector__item {
+        user-select: none;
+        opacity: 0.5;
+
+        &._active {
+            scale: 1.15;
+        }
+        
+        &._highlight {
+            opacity: 1;
+        }
+    }
+}

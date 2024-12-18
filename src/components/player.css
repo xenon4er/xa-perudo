@@ -1,0 +1,29 @@
+.player {
+    position: absolute;
+    transform: translate(-50%, -50%);
+
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    height: var(--size);
+    width: var(--size);
+    border-radius: 50%;
+    border: 2px solid;
+
+    &._current {
+        border-color: green;
+    }
+
+    &._looser {
+        border-color: red;
+    }
+
+    &._active {
+        box-shadow: 0 0 12px yellow;
+    }
+
+    &._inactive {
+        opacity: 0.5;
+    }
+}

@@ -1,0 +1,77 @@
+.dice {
+    --dice-size: 60px;
+    --box-shadow-color: transparent;
+
+    position: relative;
+    width: var(--dice-size);
+    height: var(--dice-size);
+    border-radius: 8px;
+    overflow: hidden;
+    padding: 12px;
+    box-shadow: 0 0 8px 4px var(--box-shadow-color);
+
+    .dice__side {
+        position: absolute;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 2rem;
+        color: black;
+        inset: 0;
+        background: white;
+        backface-visibility: visible;
+        box-shadow: inset 0 0 12px 0 var(--dice-slide-box-shadow-color, black);
+    }
+
+    &.dice--dot {
+        .dice__side::before {
+            content: "";
+            position: absolute;
+            background: black;
+            height: calc(var(--dice-size) / 6);
+            width: calc(var(--dice-size) / 6);
+            border-radius: 50%;
+            transform: translate(-50%, -50%);
+        }
+
+        .dice__side-1::before {
+            top: 50%;
+            left: 50%;
+        }
+
+        .dice__side-2::before {
+            top: 25%;
+            left: 25%;
+            box-shadow: calc(var(--dice-size) / 2) calc(var(--dice-size) / 2) black;
+        }
+
+        .dice__side-3::before {
+            top: 50%;
+            left: 50%;
+            box-shadow: calc(var(--dice-size) / -4) calc(var(--dice-size) / -4) black, calc(var(--dice-size) / 4) calc(var(--dice-size) / 4) black;
+        }
+
+        .dice__side-4::before {
+            top: 25%;
+            left: 25%;
+            box-shadow: 0 calc(var(--dice-size) / 2) black, calc(var(--dice-size) / 2) 0 black, calc(var(--dice-size) / 2) calc(var(--dice-size) / 2) black;
+        }
+
+        .dice__side-5::before {
+            top: 50%;
+            left: 50%;
+            box-shadow: calc(var(--dice-size) / -4) calc(var(--dice-size) / -4) black, calc(var(--dice-size) / 4) calc(var(--dice-size) / -4) black, calc(var(--dice-size) / 4) calc(var(--dice-size) / 4) black, calc(var(--dice-size) / -4) calc(var(--dice-size) / 4) black;
+        }
+
+        .dice__side-6::before {
+            top: 25%;
+            left: 25%;
+            box-shadow: calc(var(--dice-size) / 4) 0 black, calc(var(--dice-size) / 2) 0 black, 0 calc(var(--dice-size) / 2) black, calc(var(--dice-size) / 4) calc(var(--dice-size) / 2) black, calc(var(--dice-size) / 2) calc(var(--dice-size) / 2) black;
+        }
+    }
+
+    &._invalid {
+        --dice-slide-box-shadow-color: red;
+    }
+}
+
