@@ -1,5 +1,6 @@
-import { ServerMessage } from "../models/message.model";
-import { Player } from "./Player";
+import { ClientMessage, ServerMessage } from "../models/message.model";
+import {RequiredFields} from "../types/common.types";
+import { Player, TPlayer } from "./Player";
 
 export type Bet = {
     nominal: number;
@@ -14,11 +15,11 @@ export type GameStatus =
     | "gameOver";
 
 export interface TGame {
-    players: Player[];
+    players: TPlayer[];
     status: GameStatus;
-    me: Player["id"] | null;
-    host: Player["id"] | null;
-    turn: Player["id"] | null;
+    me: TPlayer["id"] | null;
+    host: TPlayer["id"] | null;
+    turn: TPlayer["id"] | null;
     bet: Bet | null;
 }
 
@@ -63,21 +64,102 @@ export class Game {
         this.queue.push(message);
     }
 
+    iAmHost(): void {
+        this.onEvent({
+            type: "iAmHost",
+            data: this.me!,
+        });
+        this.addMessage({
+            type: "proxy",
+            data: {
+                type: "iAmHost",
+                data: this.me!,
+            },
+        })
+    }
+
+    doStart(order: TPlayer["id"][]): void {
+        const message: ClientMessage = {
+            type: "start",
+            data: {
+                order: order,
+                turn: order[0],
+            },
+        };
+
+        this.onEvent(message);
+        this.addMessage({
+            type: "proxy",
+            data: message,
+        });
+    }
+
+    doRestart(): void {
+        const message: ClientMessage = {
+            type: "restart",
+        };
+        this.onEvent(message);
+        this.addMessage({
+            type: "proxy",
+            data: message,
+        });
+    }
+
+    doRoll(): void {
+        const message: ClientMessage = {
+            type: "roll",
+        };
+        this.onEvent(message);
+        this.addMessage({
+            type: "proxy",
+            data: message,
+        });
+    }
+
+    doBet(bet: Bet): void {
+        const message: ClientMessage = {
+            type: "bet",
+            data: bet,
+        };
+        this.onEvent(message);
+        this.addMessage({
+            type: "proxy",
+            data: message,
+        });
+    }
+
+    doCheck(): void {
+        const message: ClientMessage = {
+            type: "check",
+        };
+        this.onEvent(message);
+        this.addMessage({
+            type: "proxy",
+            data: message,
+        });
+    }
+
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     onStateUpdate(state: TGame): void {}
 
 
-    onEvent(event): void {}
+    onEvent(event: ClientMessage): void {}
 
 
-    private join(id: string): Player {
-        const player = new Player(id);
+    private join(input: RequiredFields<Partial<TPlayer>, "id">): Player {
+        const player = new Player(input);
         this.players.push(player);
         return player;
     }
 
     private leave(id: string): void {
-        this.players.filter((p) => p.id !== id);
+        this.players = this.players.filter((p) => p.id !== id);
+        if (this.host === id) {
+            this.setHost(null);
+        }
+        if (this.turn === id) {
+            this.setTurn(null);
+        }
     }
 
     private changeOrder(order: string[]): void {
@@ -102,12 +184,17 @@ export class Game {
         this.turn = turn;
     }
 
-    private setBet(bet: Bet): void {
+    private setBet(bet: Bet | null): void {
         this.bet = bet;
     }
 
-    private doRoll(): void {
-        this.players.forEach((p) => p.doRoll(this.me!));
+    private setStatus(status: GameStatus): void {
+        this.status = status;
+    }
+
+    private getMe(isSecure = true): TPlayer {
+        const me = this.players.find(p => p.id === this.me);
+        return me!.getPlayer(isSecure);
     }
 
     private snapshot(): TGame {
@@ -115,10 +202,24 @@ export class Game {
             bet: this.bet,
             host: this.host,
             me: this.me,
-            players: this.players,
+            players: this.players.map(p => p.getPlayer(false)),
             status: this.status,
             turn: this.turn,
         }
+    }
+
+    private getNextPlayerId(
+        id: Player["id"],
+        players: Player[],
+    ): TPlayer["id"] {
+        const idx = players.findIndex(p => p.id === id);
+        const nextIdx = (idx + 1) % players.length;
+        const nextId = players[nextIdx].id;
+        if (players[nextIdx].dices.length) {
+            return nextId;
+        }
+
+        return this.getNextPlayerId(nextId, players);
     }
 
     private loop() {
@@ -133,11 +234,12 @@ export class Game {
         }, 50);
     }
 
-
     private processMessage(message: ServerMessage): void {
         switch (message.type) {
             case "init": {
-                const player = this.join(message.data);
+                const player = this.join({
+                    id: message.data,
+                });
                 this.setMe(message.data);
                 this.onEvent({
                     type: "joinRequest",
@@ -146,74 +248,58 @@ export class Game {
                 break;
             }
             case "leave": {
-                this.players = this.players.filter(p => p.id !== message.data);
-                if (this.host === message.data) {
-                    this.setHost(null);
-                }
-                if (this.turn === message.data) {
-                    this.setTurn(null);
-                }
+                this.leave(message.data);
                 break;
             }
             case "proxy": {
                 const clientMessage = message.data;
+                console.log("proxy", clientMessage);
                 switch (clientMessage.type) {
                     case "joinRequest": {
-                        // dispatch({
-                        //     type: "joinRequest",
-                        //     payload: clientMessage,
-                        // });
-                        // if (board.me) {
-                        //     const me = { ...board.players[board.me] };
-                        //     if (
-                        //         ["gameOver", "roundOver"].includes(board.status)
-                        //     ) {
-                        //         me.dices = me.dices.map(() => 0);
-                        //     }
-                        //     ws.current?.send(
-                        //         clientMessageToString({
-                        //             type: "joinAccept",
-                        //             to: clientMessage.data.id,
-                        //             data: {
-                        //                 host: board.host,
-                        //                 bet: board.bet,
-                        //                 status: board.status,
-                        //                 turn: board.turn,
-                        //                 player: me,
-                        //             },
-                        //         }),
-                        //     );
-                        // }
+                        this.join(clientMessage.data)
+                        this.onEvent({
+                            type: "joinAccept",
+                            to: clientMessage.data.id,
+                            data: {
+                                host: this.host,
+                                bet: this.bet,
+                                status: this.status,
+                                turn: this.turn,
+                                player: this.getMe(!["gameOver", "roundOver"].includes(this.status)),
+                            },
+                        })
                         break;
                     }
                     case "joinAccept": {
-                        // dispatch({
-                        //     type: "joinAccept",
-                        //     payload: clientMessage,
-                        // });
+                        this.join(clientMessage.data.player);
+                        if (clientMessage.data.player.id === clientMessage.data.host) {
+                            this.setBet(clientMessage.data.bet);
+                            this.setHost(clientMessage.data.host);
+                            this.setStatus(clientMessage.data.status);
+                            this.setTurn(clientMessage.data.turn);
+                        }
                         break;
                     }
                     case "iAmHost": {
-                        // dispatch({
-                        //     type: "host",
-                        //     payload: clientMessage.data,
-                        // });
+                        this.setHost(clientMessage.data);
                         break;
                     }
                     case "roll": {
-                        // if (board.turn) {
-                            // let turnPlayerDicesCount =
-                            //     board.players[board.turn].dices.length;
-                            // if (board.status === "roundOver") {
-                            //     turnPlayerDicesCount -= 1;
-                            // }
-                            // dispatch({
-                            //     type: "roll",
-                            //     payload: {
-                            //         turnPlayerDicesCount: turnPlayerDicesCount,
-                            //     },
-                            // });
-                        // }
+                        const turnPlayer = this.players.find(p => p.id === this.turn);
+                        turnPlayer?.removeDice();
+                        this.players.forEach((p) => p.doRoll(this.me!));
+                        let turn = null;
+                        if (turnPlayer?.dices.length === 0) {
+                            turn = this.getNextPlayerId(
+                                this.turn!,
+                                this.players,
+                            );
+                        }
+                        if (turn) {
+                            this.setTurn(turn);
+                        }
+                        this.setStatus("inProgress");
+                        this.setBet(null);
                         break;
                     }
                     case "bet": {
@@ -224,19 +310,18 @@ export class Game {
                         break;
                     }
                     case "check": {
-                        // console.log("effect", board.me);
-                        // ws.current?.send(
-                        //     clientMessageToString({
-                        //         type: "revealDices",
-                        //         data: {
-                        //             id: board.me!,
-                        //             dices: board.players[board.me!].dices,
-                        //         },
-                        //     }),
-                        // );
+                        const message: ClientMessage = {
+                            type: "revealDices",
+                            data: {
+                                id: this.me!,
+                                dices: this.getMe().dices,
+                            },
+                        };
+                        this.onEvent(message);
                         break;
                     }
                     case "revealDices": {
+
                         // dispatch({
                         //     type: "revealDices",
                         //     payload: clientMessage.data,
@@ -244,19 +329,16 @@ export class Game {
                         break;
                     }
                     case "start": {
-                        // dispatch({
-                        //     type: "start",
-                        //     payload: {
-                        //         playersOrder: clientMessage.data.playersOrder,
-                        //         turn: clientMessage.data.turn,
-                        //     },
-                        // });
+                        this.setTurn(clientMessage.data.turn);
+                        this.setStatus("ready");
+                        this.changeOrder(clientMessage.data.order)
                         break;
                     }
                     case "restart": {
-                        // dispatch({
-                        //     type: "restart",
-                        // });
+                        this.setBet(null);
+                        this.setTurn(null);
+                        this.setStatus("initial");
+                        this.players.forEach(p => p.generateDices());
                     }
                 }
                 break;

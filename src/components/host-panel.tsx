@@ -1,69 +1,40 @@
 import { Fragment, useCallback, useContext, useEffect, useState, MouseEvent } from "react";
-import { clientMessageToString } from "../models/message.model";
-import { Player } from "../models/player.model";
 import { BoardContext } from "../contexts/board-context";
 
 import styles from "./host-panel.module.css";
+import {TPlayer} from "../game/Player";
+import {Game} from "../game/Game";
 
 export function HostPanel({
-    ws,
+    game,
     onClose,
 }: {
-    ws?: WebSocket;
+    game?: Game;
     onClose: (event: MouseEvent<HTMLElement> | null) => void;
 }) {
     const board = useContext(BoardContext);
-    const [order, setOrder] = useState<Player["id"][]>([]);
+    const [order, setOrder] = useState<TPlayer["id"][]>([]);
 
     useEffect(() => {
         setOrder((order) => {
-            const players = new Set(Object.keys(board.players));
+            const players = new Set(board.players.map(p => p.id));
             const checkedOrder = order.filter((p) => players.has(p));
-            const notInOrder = Object.keys(board.players).filter(
-                (p) => !order.includes(p),
-            );
+            const notInOrder = board.players.filter(
+                (p) => !order.includes(p.id),
+            ).map(p => p.id);
             return checkedOrder.concat(notInOrder);
         });
     }, [board]);
 
     function handleRestart(): void {
-        // if (!dispatch) {
-        //     return;
-        // }
-        // dispatch({
-        //     type: "restart",
-        // });
-        // ws?.send(
-        //     clientMessageToString({
-        //         type: "restart",
-        //     }),
-        // );
+        game?.doRestart();
     }
 
     const handleStart = useCallback(() => {
-        // if (!dispatch) {
-        //     return;
-        // }
-        // dispatch({
-        //     type: "start",
-        //     payload: {
-        //         playersOrder: order,
-        //         turn: order[0],
-        //     },
-        // });
-        // ws?.send(
-        //     clientMessageToString({
-        //         type: "start",
-        //         data: {
-        //             playersOrder: order,
-        //             turn: order[0],
-        //         },
-        //     }),
-        // );
-
+        game?.doStart(order);
         onClose(null);
 
-    }, [order, ws, onClose]);
+    }, [order, game, onClose]);
 
     const handleMoveToTop = (idx: number) => {
         if (idx < 1) {

@@ -3,8 +3,9 @@ import { Bet } from "../types/types";
 import { BoardContext } from "../contexts/board-context";
 import { SliderSelector } from "./slider-selector";
 import { Dice } from "./dice";
+import {Game} from "../game/Game";
 
-export function Turn({ ws }: { ws?: WebSocket }) {
+export function Turn({ game }: { game?: Game }) {
     const board = useContext(BoardContext);
     const [bet, setBet] = useState<Bet>(() => {
         return {
@@ -14,54 +15,15 @@ export function Turn({ ws }: { ws?: WebSocket }) {
     });
 
     function handleRoll(): void {
-        // if (board.turn) {
-        //     let turnPlayerDicesCount =
-        //         board.players[board.turn].dices.length;
-        //     if (board.status === "roundOver") {
-        //         turnPlayerDicesCount -= 1;
-        //     }
-        //     dispatch?.({
-        //         type: "roll",
-        //         payload: {
-        //             turnPlayerDicesCount: turnPlayerDicesCount,
-        //         },
-        //     });
-        // }
-        // ws?.send(
-        //     clientMessageToString({
-        //         type: "roll",
-        //     }),
-        // );
+        game?.doRoll();
     }
 
     function handleBet(bet: Bet): void {
-        // dispatch?.({
-        //     type: "bet",
-        //     payload: bet,
-        // });
-        // ws?.send(
-        //     clientMessageToString({
-        //         type: "bet",
-        //         data: bet,
-        //     }),
-        // );
+        game?.doBet(bet);
     }
 
-    function handleCheck(me: string, dices: number[]): void {
-        // ws?.send(
-        //     clientMessageToString({
-        //         type: "check",
-        //     }),
-        // );
-        // ws?.send(
-        //     clientMessageToString({
-        //         type: "revealDices",
-        //         data: {
-        //             id: me,
-        //             dices: dices,
-        //         },
-        //     }),
-        // );
+    function handleCheck(): void {
+        game?.doCheck();
     }
 
     const dicesCount = useMemo(
@@ -177,7 +139,7 @@ export function Turn({ ws }: { ws?: WebSocket }) {
                                 Bet
                             </button>
                             {board.bet && (
-                                <button onClick={() => handleCheck(board.me!, board.players[board.me!].dices)}>Check</button>
+                                <button onClick={() => handleCheck()}>Check</button>
                             )}
                         </>
                     )}

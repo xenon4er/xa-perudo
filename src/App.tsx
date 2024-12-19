@@ -2,7 +2,6 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import "./App.css";
 import {
     clientMessageToString,
-    ServerMessage,
     serverMessageToJSON,
 } from "./models/message.model";
 import { HostPanel } from "./components/host-panel";
@@ -22,169 +21,23 @@ function App() {
         turn: null,
         bet: null,
     }));
-    //     boardStateReducer,
-    //     undefined,
-    //     createBoard,
-    // );
-
-    const [serverMessage, setServerMessage] = useState<ServerMessage>();
 
     const [center, setCenter] = useState([0, 0]);
     const [isHostPanelVisible, setIsHostPanelVisible] = useState(false);
     const ws = useRef<WebSocket>();
+    const game = useRef<Game>();
     const containerRef = useRef<HTMLDivElement>(null);
 
     useEffect(() => {
-        if (!serverMessage) {
-            return;
-        }
-
-        const message = serverMessage;
-        switch (message.type) {
-            case "init": {
-                // const player = createPlayer({ id: message.data });
-                // dispatch({
-                //     type: "init",
-                //     payload: player,
-                // });
-                // ws.current?.send(
-                //     clientMessageToString({
-                //         type: "joinRequest",
-                //         data: player,
-                //     }),
-                // );
-                break;
-            }
-            case "leave": {
-                // dispatch({
-                //     type: "leave",
-                //     payload: message.data,
-                // });
-                break;
-            }
-            case "error": {
-                console.error(message.data);
-                break;
-            }
-            case "proxy": {
-                const clientMessage = message.data;
-                switch (clientMessage.type) {
-                    case "joinRequest": {
-                        // dispatch({
-                        //     type: "joinRequest",
-                        //     payload: clientMessage,
-                        // });
-                        // if (board.me) {
-                        //     const me = { ...board.players[board.me] };
-                        //     if (
-                        //         ["gameOver", "roundOver"].includes(board.status)
-                        //     ) {
-                        //         me.dices = me.dices.map(() => 0);
-                        //     }
-                        //     ws.current?.send(
-                        //         clientMessageToString({
-                        //             type: "joinAccept",
-                        //             to: clientMessage.data.id,
-                        //             data: {
-                        //                 host: board.host,
-                        //                 bet: board.bet,
-                        //                 status: board.status,
-                        //                 turn: board.turn,
-                        //                 player: me,
-                        //             },
-                        //         }),
-                        //     );
-                        // }
-                        break;
-                    }
-                    case "joinAccept": {
-                        // dispatch({
-                        //     type: "joinAccept",
-                        //     payload: clientMessage,
-                        // });
-                        break;
-                    }
-                    case "iAmHost": {
-                        // dispatch({
-                        //     type: "host",
-                        //     payload: clientMessage.data,
-                        // });
-                        break;
-                    }
-                    case "roll": {
-                        // if (board.turn) {
-                            // let turnPlayerDicesCount =
-                            //     board.players[board.turn].dices.length;
-                            // if (board.status === "roundOver") {
-                            //     turnPlayerDicesCount -= 1;
-                            // }
-                            // dispatch({
-                            //     type: "roll",
-                            //     payload: {
-                            //         turnPlayerDicesCount: turnPlayerDicesCount,
-                            //     },
-                            // });
-                        // }
-                        break;
-                    }
-                    case "bet": {
-                        // dispatch({
-                        //     type: "bet",
-                        //     payload: clientMessage.data,
-                        // });
-                        break;
-                    }
-                    case "check": {
-                        // console.log("effect", board.me);
-                        // ws.current?.send(
-                        //     clientMessageToString({
-                        //         type: "revealDices",
-                        //         data: {
-                        //             id: board.me!,
-                        //             dices: board.players[board.me!].dices,
-                        //         },
-                        //     }),
-                        // );
-                        break;
-                    }
-                    case "revealDices": {
-                        // dispatch({
-                        //     type: "revealDices",
-                        //     payload: clientMessage.data,
-                        // });
-                        break;
-                    }
-                    case "start": {
-                        // dispatch({
-                        //     type: "start",
-                        //     payload: {
-                        //         playersOrder: clientMessage.data.playersOrder,
-                        //         turn: clientMessage.data.turn,
-                        //     },
-                        // });
-                        break;
-                    }
-                    case "restart": {
-                        // dispatch({
-                        //     type: "restart",
-                        // });
-                    }
-                }
-                break;
-            }
-        }
-    }, [serverMessage]);
-
-    useEffect(() => {
         const socket = new WebSocket("ws://localhost:3000");
-        const game = new Game();
+        const g = new Game();
 
-        game.onStateUpdate = (msg) => {
+        g.onStateUpdate = (msg) => {
             console.log(msg);
             dispatch(msg);
         }
 
-        game.onEvent = (event) => {
+        g.onEvent = (event) => {
             if (socket.OPEN) {
                 socket.send(clientMessageToString(event))
             }
@@ -192,7 +45,7 @@ function App() {
 
         socket.onopen = () => {
             setConnection(true);
-            game.init();
+            g.init();
         };
         socket.onclose = () => {
             setConnection(false);
@@ -200,16 +53,15 @@ function App() {
         };
         socket.onmessage = (ev) => {
             const message = serverMessageToJSON(ev.data);
-            setServerMessage(message);
-            game.addMessage(message);
+            g.addMessage(message);
         };
 
 
-
+        game.current = g;
         ws.current = socket;
 
         return () => {
-            game.destroy();
+            g.destroy();
             socket.close();
         };
     }, []);
@@ -230,18 +82,9 @@ function App() {
         return () => window.removeEventListener("resize", handleResize);
     }, []);
 
-    function handleIAmHost(host: string): void {
+    function handleIAmHost(): void {
         setIsHostPanelVisible(true);
-        // dispatch({
-        //     type: "host",
-        //     payload: host,
-        // });
-        ws.current?.send(
-            clientMessageToString({
-                type: "iAmHost",
-                data: host,
-            }),
-        );
+        game.current?.iAmHost();
     }
 
     const positions = useMemo(() => {
@@ -271,9 +114,9 @@ function App() {
         <BoardContext.Provider value={board}>
         <div className="content" ref={containerRef}>
             <Board
-                ws={ws.current}
+                game={game.current}
                 positions={positions}
-                handleIAmHost={(host) => handleIAmHost(host)}
+                handleIAmHost={() => handleIAmHost()}
             ></Board>
         </div>
 
@@ -282,7 +125,7 @@ function App() {
                 <>
                     {isHostPanelVisible && (
                         <HostPanel
-                            ws={ws.current}
+                            game={game.current}
                             onClose={() => setIsHostPanelVisible(false)}
                         ></HostPanel>
                     )}

@@ -3,7 +3,7 @@ import clsx from "clsx";
 import "./player.css";
 import {BoardContext} from "../contexts/board-context";
 import {useContext} from "react";
-import {Player as TPlayer} from "../game/Player";
+import {TPlayer} from "../game/Player";
 
 export function Player({
     player,
