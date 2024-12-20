@@ -1,4 +1,4 @@
-import { ClientMessage, ServerMessage } from "../models/message.model";
+import { ClientMessage, clientMessageToString, ServerMessage, serverMessageToJSON } from "../models/message.model";
 import {RequiredFields} from "../types/common.types";
 import { Player, TPlayer } from "./Player";
 
@@ -39,6 +39,8 @@ export class Game {
     private timer: NodeJS.Timeout | null = null;
     private queue: ServerMessage[] = [];
 
+    private socket: WebSocket;
+
     constructor() {
         this.players = [];
         this.status = "initial";
@@ -46,6 +48,21 @@ export class Game {
         this.host = null;
         this.turn = null;
         this.bet = null;
+
+        this.socket = new WebSocket(`ws://${location.hostname}:3000`);
+        this.socket.onopen = () => {
+            this.init();
+            this.onOpen();
+        };
+
+        this.socket.onclose = () => {
+            this.onClose();
+        }
+
+        this.socket.onmessage = (ev) => {
+            const message = serverMessageToJSON(ev.data);
+            this.addMessage(message);
+        };
     }
 
     init(): void {
@@ -58,9 +75,10 @@ export class Game {
         if (this.timer) {
             clearTimeout(this.timer);
         }
+        this.socket.close();
     }
 
-    addMessage(message: ServerMessage): void {
+    private addMessage(message: ServerMessage): void {
         this.queue.push(message);
     }
 
@@ -140,10 +158,18 @@ export class Game {
     }
 
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    onStateUpdate(state: TGame): void {}
+    onStateUpdate(_state: TGame): void {}
 
+    
+    onOpen(): void {}
+    
+    onClose(): void {}
 
-    onEvent(event: ClientMessage): void {}
+    private onEvent(event: ClientMessage): void {
+        if (this.socket.OPEN) {
+            this.socket.send(clientMessageToString(event))
+        }
+    }
 
 
     private join(input: RequiredFields<Partial<TPlayer>, "id">): Player {
@@ -222,16 +248,29 @@ export class Game {
         return this.getNextPlayerId(nextId, players);
     }
 
+    private getPrevPlayerId(
+        id: Player["id"],
+        players: Player[],
+    ): TPlayer["id"] {
+        const idx = players.findIndex(p => p.id === id);
+        const prevIdx = (players.length + idx - 1) % players.length;
+        const prevId = players[prevIdx].id;
+        if (players[prevIdx].dices.length) {
+            return prevId;
+        }
+
+        return this.getPrevPlayerId(prevId, players);
+    }
+
     private loop() {
         const message = this.queue.shift();
         if (message) {
-            //
             this.processMessage(message);
             this.onStateUpdate(this.snapshot());
         }
         this.timer = setTimeout(() => {
             this.loop();
-        }, 50);
+        });
     }
 
     private processMessage(message: ServerMessage): void {
@@ -286,7 +325,9 @@ export class Game {
                     }
                     case "roll": {
                         const turnPlayer = this.players.find(p => p.id === this.turn);
-                        turnPlayer?.removeDice();
+                        if (this.status === "roundOver") {
+                            turnPlayer?.removeDice();
+                        }
                         this.players.forEach((p) => p.doRoll(this.me!));
                         let turn = null;
                         if (turnPlayer?.dices.length === 0) {
@@ -303,29 +344,62 @@ export class Game {
                         break;
                     }
                     case "bet": {
-                        // dispatch({
-                        //     type: "bet",
-                        //     payload: clientMessage.data,
-                        // });
+                        this.setBet(clientMessage.data);
+                        const nextTurn = this.getNextPlayerId(
+                            this.turn!,
+                            this.players,
+                        );
+                        this.setTurn(nextTurn);
                         break;
                     }
                     case "check": {
-                        const message: ClientMessage = {
-                            type: "revealDices",
-                            data: {
-                                id: this.me!,
-                                dices: this.getMe().dices,
-                            },
-                        };
-                        this.onEvent(message);
+                        const dices = this.getMe(false).dices;
+                        if (dices.length) {                            
+                            const message: ClientMessage = {
+                                type: "revealDices",
+                                data: {
+                                    id: this.me!,
+                                    dices: dices,
+                                },
+                            };
+                            this.onEvent(message);
+                        }
                         break;
                     }
                     case "revealDices": {
-
-                        // dispatch({
-                        //     type: "revealDices",
-                        //     payload: clientMessage.data,
-                        // });
+                        const p = this.players.find(p => p.id === clientMessage.data.id);
+                        p?.setDices(clientMessage.data.dices);
+                        console.log(clientMessage.data);
+                        if (
+                            this.players.every(
+                                (p) => !p.dices.some((d) => d === 0),
+                            )
+                        ) {
+                            const bet = this.bet;
+                            if (!bet) {
+                                return;
+                            } 
+            
+                            const isLier =
+                                bet.count >
+                                this.players.reduce(
+                                    (res, p) =>
+                                        res +
+                                        p.getDicesWithNominal(
+                                            bet.nominal,
+                                        ),
+                                    0,
+                                );
+            
+                            let turn = null;
+                            if (isLier) {
+                                turn = this.getPrevPlayerId(this.turn!, this.players);
+                            }
+                            this.setStatus("roundOver");
+                            if (turn) {
+                                this.setTurn(turn);
+                            }
+                        }
                         break;
                     }
                     case "start": {

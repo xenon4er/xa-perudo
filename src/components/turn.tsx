@@ -92,27 +92,22 @@ export function Turn({ game }: { game?: Game }) {
             )}
             {(board.status === "inProgress" || board.status === "roundOver") && (
                 <>
-                    <div
-                        style={{
-                            marginBottom: "20px",
-                        }}
+                    
+                    <SliderSelector
+                        readonly={board.turn !== board.me || board.status === "roundOver"}
+                        selectedIdx={dicesCount.indexOf(bet.count)}
+                        isInvalid={!isValid}
+                        onChange={(index) =>
+                            setBet((bet) => ({
+                                ...bet,
+                                count: dicesCount[index],
+                            }))
+                        }
                     >
-                        <SliderSelector
-                            readonly={board.turn !== board.me || board.status === "roundOver"}
-                            selectedIdx={dicesCount.indexOf(bet.count)}
-                            isInvalid={!isValid}
-                            onChange={(index) =>
-                                setBet((bet) => ({
-                                    ...bet,
-                                    count: dicesCount[index],
-                                }))
-                            }
-                        >
-                            {dicesCount.map((v) => (
-                                <Dice side={v} key={v} type="number"></Dice>
-                            ))}
-                        </SliderSelector>
-                    </div>
+                        {dicesCount.map((v) => (
+                            <Dice side={v} key={v} type="number"></Dice>
+                        ))}
+                    </SliderSelector>
 
                     <SliderSelector
                         readonly={board.turn !== board.me || board.status === "roundOver"}
@@ -131,7 +126,10 @@ export function Turn({ game }: { game?: Game }) {
                     </SliderSelector>
 
                     {board.turn && board.turn === board.me && board.status !== "roundOver" && (
-                        <>
+                        <div style={{
+                            display: "flex",
+                            gap: "0.5rem",
+                        }}>
                             <button
                                 disabled={!isValid}
                                 onClick={() => handleBet(bet)}
@@ -141,7 +139,7 @@ export function Turn({ game }: { game?: Game }) {
                             {board.bet && (
                                 <button onClick={() => handleCheck()}>Check</button>
                             )}
-                        </>
+                        </div>
                     )}
                 </>
             )}

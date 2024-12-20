@@ -22,11 +22,20 @@ export class Player {
     }
 
     generateDices(): number[] {
-        return Array(6).fill(0);
+        return Array(5).fill(0);
     }
 
     removeDice(): void {
         this.dices.pop();
+    }
+
+    getDicesWithNominal(nominal: number): number {
+        return this.dices.reduce((res, d) => {
+            if (d === nominal || d === 1) {
+                res++;
+            } 
+            return res;
+        }, 0);
     }
 
     doRoll(me: string): void {

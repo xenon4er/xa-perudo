@@ -30,15 +30,21 @@ export function SliderSelector({
     const innerRef = useRef<HTMLDivElement>(null);
 
     useEffect(() => {
-        if (!sliderRef.current) {
-            return;
-        }
-        const boundRect = sliderRef.current.getBoundingClientRect();
-        setCenter({
-            x: boundRect.x + boundRect.width / 2,
-            y: boundRect.y + boundRect.height / 2,
-        });
-    }, []);
+        const handleResize = () => {
+            if (!sliderRef.current) {
+                return;
+            }
+            const boundRect = sliderRef.current.getBoundingClientRect();
+            setCenter({
+                x: boundRect.x + boundRect.width / 2,
+                y: boundRect.y + boundRect.height / 2,
+            });
+        };
+    
+        handleResize();
+        window.addEventListener("resize", handleResize);
+        return () => window.removeEventListener("resize", handleResize);
+      }, []);
 
     const moveToTheEl = useCallback(() => {
         if (!innerRef.current) {
@@ -154,6 +160,7 @@ export function SliderSelector({
                     }),
                 }))}
             </div>
+
         </div>
     );
 }

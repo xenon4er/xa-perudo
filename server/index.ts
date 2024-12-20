@@ -6,7 +6,7 @@ import {
     clientMessageToJSON,
     serverMessageToString,
 } from "../src/models/message.model";
-
+import { networkInterfaces } from "os";
 export type WebSocketExtra = {
     id?: string;
 } & WebSocket;
@@ -15,7 +15,32 @@ const app: Express = express();
 const server = http.createServer(app);
 const wss = new WebSocketServer({ server });
 
-const port = process.argv[2] === "--port" ? process.argv[3] : 3000;
+const portIdx = process.argv.indexOf("--port");
+const port = portIdx === -1 ? 3000 : parseInt(process.argv[portIdx + 1]);
+
+let host = "localhost";
+const hostIdx = process.argv.indexOf("--host");
+if (hostIdx !== -1) {
+    const nets = networkInterfaces();
+    const externalIpv4 = Object.values(nets).reduce(
+        (res: string[], interfaces) => {
+            if (interfaces) {
+                for (const i of interfaces) {
+                    if (!i.internal && i.family === "IPv4") {
+                        res.push(i.address);
+                    }
+                }
+            }
+            return res;
+        },
+        [],
+    );
+
+    console.info("External IPv4 addresses:", externalIpv4);
+    if (externalIpv4?.length) {
+        host = externalIpv4[0];
+    }
+}
 
 wss.on("connection", (ws: WebSocketExtra) => {
     console.log("New connection");
@@ -79,6 +104,6 @@ wss.on("connection", (ws: WebSocketExtra) => {
     });
 });
 
-server.listen(port, () => {
-    console.log(`[server]: Server is running at http://localhost:${port}`);
+server.listen(port, host, () => {
+    console.log(`[server]: Server is running at http://${host}:${port}`);
 });

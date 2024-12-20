@@ -8,8 +8,9 @@
     "dev-host": "vite --host",
     "build": "tsc -b && vite build",
     "lint": "eslint .",
-    "preview": "vite preview",
-    "start-server": "tsx server/index.ts --port 3000"
+    "preview": "vite preview --host",
+    "start-server": "tsx server/index.ts --port 3000",
+    "start-server-host": "tsx server/index.ts --port 3000 --host"
   },
   "dependencies": {
     "clsx": "^2.1.1",

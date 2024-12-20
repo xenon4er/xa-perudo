@@ -2,13 +2,12 @@
     display: flex;
     position: relative;
     padding: 8px 0;
-    width: 400px;
+    width: min(400px, 100%);
     overflow: hidden;
     scrollbar-width: none;
     mask-image: linear-gradient(to left, rgba(0, 0, 0, 0.01) 0, white 10%, white 90%, rgba(0, 0, 0, 0.01) 100%);
 
     .slider-selector__inner {
-        margin: 0 170px;
         display: flex;
         gap: 8px;
         position: relative;

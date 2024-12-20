@@ -1,7 +1,23 @@
+.wrapper {
+    display: flex;
+    flex: 1;
+    padding: 2rem;
+}
+
+.list {
+    --size: 110px;
+    position: relative;
+    flex: 1;
+    margin: calc(var(--size) / 2);
+
+    @media (min-width: 576px) {
+        --size: 150px;
+    }
+}
+
 .player {
     position: absolute;
     transform: translate(-50%, -50%);
-
     display: flex;
     flex-direction: column;
     align-items: center;
