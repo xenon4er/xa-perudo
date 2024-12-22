@@ -13,16 +13,15 @@ export function Player({
     player: TPlayer;
     position: [number, number];
 }) {
-    const board = useContext(BoardContext);
+    const { turn, host, me, status } = useContext(BoardContext);
 
     return (
         <div
             className={clsx(styles.player, {
-                [styles._active]: player.id === board.turn,
-                [styles._host]: player.id === board.host,
-                [styles._current]: player.id === board.me,
-                [styles._looser]:
-                    board.status === "roundOver" && player.id === board.turn,
+                [styles._active]: player.id === turn,
+                [styles._host]: player.id === host,
+                [styles._current]: player.id === me,
+                [styles._looser]: status === "roundOver" && player.id === turn,
                 [styles._inactive]: player.dices.length === 0,
             })}
             style={{
@@ -42,9 +41,13 @@ export function Player({
 }
 
 export function PlayerList() {
-    const board = useContext(BoardContext);
+    const { players, me } = useContext(BoardContext);
     const [center, setCenter] = useState([0, 0]);
     const containerRef = useRef<HTMLDivElement>(null);
+
+    useEffect(() => {
+        console.log("PlayerList");
+    }, []);
 
     useEffect(() => {
         const handleResize = () => {
@@ -64,14 +67,12 @@ export function PlayerList() {
 
     const positions = useMemo(() => {
         const [a, b] = center;
-        const n = board.players.length;
+        const n = players.length;
         if (!n) {
             return {};
         }
 
-        const firstPlayerIdx = board.players.findIndex(
-            (p) => p.id === board.me,
-        );
+        const firstPlayerIdx = players.findIndex((p) => p.id === me);
         const res: Record<string, [number, number]> = {};
         for (let i = 0; i < n; i++) {
             const idx = (i + firstPlayerIdx) % n;
@@ -79,15 +80,15 @@ export function PlayerList() {
             const alpha = Math.atan2(a * Math.sin(beta), b * Math.cos(beta));
             const x = center[0] + a * Math.cos(alpha);
             const y = center[1] + b * Math.sin(alpha);
-            res[board.players[idx].id] = [x, y];
+            res[players[idx].id] = [x, y];
         }
         return res;
-    }, [center, board]);
+    }, [center, players, me]);
 
     return (
         <div className={styles.wrapper}>
             <div className={styles.list} ref={containerRef}>
-                {board.players.map((p) => {
+                {players.map((p) => {
                     return (
                         <Player
                             key={p.id}

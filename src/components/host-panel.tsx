@@ -19,19 +19,19 @@ export function HostPanel({
     game?: Game;
     onClose: (event: MouseEvent<HTMLElement> | null) => void;
 }) {
-    const board = useContext(BoardContext);
+    const { players, status } = useContext(BoardContext);
     const [order, setOrder] = useState<TPlayer["id"][]>([]);
 
     useEffect(() => {
         setOrder((order) => {
-            const players = new Set(board.players.map((p) => p.id));
-            const checkedOrder = order.filter((p) => players.has(p));
-            const notInOrder = board.players
+            const _players = new Set(players.map((p) => p.id));
+            const checkedOrder = order.filter((p) => _players.has(p));
+            const notInOrder = players
                 .filter((p) => !order.includes(p.id))
                 .map((p) => p.id);
             return checkedOrder.concat(notInOrder);
         });
-    }, [board]);
+    }, [players]);
 
     function handleRestart(): void {
         game?.doRestart();
@@ -104,7 +104,7 @@ export function HostPanel({
             >
                 <div className={styles.players}>{getPlayersList()}</div>
                 <div className={styles.controls}>
-                    {board?.status === "initial" && (
+                    {status === "initial" && (
                         <button onClick={handleStart}>Start</button>
                     )}
                     <button onClick={handleRestart}>Restart</button>

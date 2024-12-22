@@ -1,17 +1,22 @@
-import { useContext, useMemo, useState } from "react";
+import { useContext, useEffect, useMemo, useState } from "react";
 import { BoardContext } from "../contexts/board-context";
 import { SliderSelector } from "./slider-selector";
 import { Dice } from "./dice";
 import { Bet, Game } from "../game/Game";
 
 export function Turn({ game }: { game?: Game }) {
-    const board = useContext(BoardContext);
-    const [bet, setBet] = useState<Bet>(() => {
-        return {
-            nominal: board.bet?.nominal ?? 1,
-            count: board.bet?.count ?? 1,
-        };
+    const { bet, players, turn, me, status } = useContext(BoardContext);
+    const [currentBet, setBet] = useState<Bet>({
+        nominal: 1,
+        count: 1,
     });
+
+    useEffect(() => {
+        setBet({
+            nominal: bet?.nominal ?? 1,
+            count: bet?.count ?? 1,
+        });
+    }, [bet]);
 
     function handleRoll(): void {
         game?.doRoll();
@@ -27,14 +32,14 @@ export function Turn({ game }: { game?: Game }) {
 
     const dicesCount = useMemo(
         () =>
-            Object.values(board.players).reduce((res: number[], p) => {
+            Object.values(players).reduce((res: number[], p) => {
                 p.dices.forEach(() => {
                     const prev = res.at(-1);
                     res.push(prev ? prev + 1 : 1);
                 });
                 return res;
             }, []),
-        [board],
+        [players],
     );
 
     const dicesNominal = useMemo(
@@ -46,62 +51,53 @@ export function Turn({ game }: { game?: Game }) {
     );
 
     const isValid = useMemo(() => {
-        if (
-            !board.bet ||
-            board.turn !== board.me ||
-            board.status === "roundOver"
-        ) {
+        if (!bet || turn !== me || status === "roundOver") {
             return true;
         }
 
-        if (board.bet.nominal === 1) {
-            if (bet.nominal === 1 && bet.count > board.bet.count) {
+        if (bet.nominal === 1) {
+            if (currentBet.nominal === 1 && currentBet.count > bet.count) {
                 return true;
             }
 
-            if (bet.nominal !== 1 && bet.count > board.bet.count * 2) {
+            if (currentBet.nominal !== 1 && currentBet.count > bet.count * 2) {
                 return true;
             }
         } else {
             if (
-                bet.nominal > board.bet.nominal &&
-                bet.count === board.bet.count
+                currentBet.nominal > bet.nominal &&
+                currentBet.count === bet.count
             ) {
                 return true;
             }
 
-            if (bet.count > board.bet.count) {
+            if (currentBet.count > bet.count) {
                 return true;
             }
 
             if (
-                bet.nominal === 1 &&
-                bet.count >= Math.ceil(board.bet.count / 2)
+                currentBet.nominal === 1 &&
+                currentBet.count >= Math.ceil(bet.count / 2)
             ) {
                 return true;
             }
         }
 
         return false;
-    }, [bet, board]);
+    }, [currentBet, bet, me, status, turn]);
 
     return (
         <>
-            {board.turn === board.me &&
-                (board.status === "ready" || board.status === "roundOver") && (
-                    <button type="button" onClick={handleRoll}>
-                        Roll
-                    </button>
-                )}
-            {(board.status === "inProgress" ||
-                board.status === "roundOver") && (
+            {turn === me && (status === "ready" || status === "roundOver") && (
+                <button type="button" onClick={handleRoll}>
+                    Roll
+                </button>
+            )}
+            {(status === "inProgress" || status === "roundOver") && (
                 <>
                     <SliderSelector
-                        readonly={
-                            board.turn !== board.me ||
-                            board.status === "roundOver"
-                        }
-                        selectedIdx={dicesCount.indexOf(bet.count)}
+                        readonly={turn !== me || status === "roundOver"}
+                        selectedIdx={dicesCount.indexOf(currentBet.count)}
                         isInvalid={!isValid}
                         onChange={(index) =>
                             setBet((bet) => ({
@@ -116,11 +112,8 @@ export function Turn({ game }: { game?: Game }) {
                     </SliderSelector>
 
                     <SliderSelector
-                        readonly={
-                            board.turn !== board.me ||
-                            board.status === "roundOver"
-                        }
-                        selectedIdx={dicesNominal.indexOf(bet.nominal)}
+                        readonly={turn !== me || status === "roundOver"}
+                        selectedIdx={dicesNominal.indexOf(currentBet.nominal)}
                         isInvalid={!isValid}
                         onChange={(index) =>
                             setBet((bet) => ({
@@ -134,28 +127,26 @@ export function Turn({ game }: { game?: Game }) {
                         ))}
                     </SliderSelector>
 
-                    {board.turn &&
-                        board.turn === board.me &&
-                        board.status !== "roundOver" && (
-                            <div
-                                style={{
-                                    display: "flex",
-                                    gap: "0.5rem",
-                                }}
+                    {turn && turn === me && status !== "roundOver" && (
+                        <div
+                            style={{
+                                display: "flex",
+                                gap: "0.5rem",
+                            }}
+                        >
+                            <button
+                                disabled={!isValid}
+                                onClick={() => handleBet(currentBet)}
                             >
-                                <button
-                                    disabled={!isValid}
-                                    onClick={() => handleBet(bet)}
-                                >
-                                    Bet
+                                Bet
+                            </button>
+                            {bet && (
+                                <button onClick={() => handleCheck()}>
+                                    Check
                                 </button>
-                                {board.bet && (
-                                    <button onClick={() => handleCheck()}>
-                                        Check
-                                    </button>
-                                )}
-                            </div>
-                        )}
+                            )}
+                        </div>
+                    )}
                 </>
             )}
         </>

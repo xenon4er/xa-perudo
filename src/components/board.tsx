@@ -1,8 +1,8 @@
-import {useContext} from "react";
-import {PlayerList} from "./player-list";
-import {Turn} from "./turn";
-import {BoardContext} from "../contexts/board-context";
-import {Game} from "../game/Game";
+import { useContext, useEffect } from "react";
+import { PlayerList } from "./player-list";
+import { Turn } from "./turn";
+import { BoardContext } from "../contexts/board-context";
+import { Game } from "../game/Game";
 
 import styles from "./board.module.css";
 
@@ -13,24 +13,24 @@ export function Board({
     game?: Game;
     handleIAmHost: () => void;
 }) {
-    const board = useContext(BoardContext)
-    
-    return (
-        <div className={styles.board} >
+    const { host } = useContext(BoardContext);
 
+    useEffect(() => {
+        console.log("Board");
+    }, []);
+
+    return (
+        <div className={styles.board}>
             <PlayerList></PlayerList>
 
             <div className={styles.actions}>
-                {!board.host && (
+                {!host && (
                     <button onClick={() => handleIAmHost()}>
                         I AM THE HOST
                     </button>
                 )}
 
-                <Turn
-                    key={Date.now()}
-                    game={game}
-                ></Turn>
+                <Turn game={game}></Turn>
             </div>
         </div>
     );

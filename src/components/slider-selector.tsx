@@ -36,6 +36,10 @@ export function SliderSelector({
     const innerRef = useRef<HTMLDivElement>(null);
 
     useEffect(() => {
+        setSelected(selectedIdx);
+    }, [selectedIdx]);
+
+    useEffect(() => {
         const handleResize = () => {
             if (!sliderRef.current) {
                 return;
@@ -57,14 +61,15 @@ export function SliderSelector({
             return;
         }
 
-        const el = innerRef.current.children[selected]?.getBoundingClientRect();
+        const el =
+            innerRef.current.children[selectedIdx]?.getBoundingClientRect();
 
         if (!el) {
             return;
         }
 
         setLeft((l) => l + center.x - el.left - el.width / 2);
-    }, [selected, center]);
+    }, [selectedIdx, center]);
 
     useEffect(() => {
         if (!isMouseDown) {
@@ -77,7 +82,53 @@ export function SliderSelector({
             return;
         }
         setIsMouseDown(true);
-    }, [readonly]);
+
+        const slider = sliderRef.current;
+        if (slider) {
+            let selected: number | null = null;
+
+            function handleMove(e: MouseEvent) {
+                if (!innerRef.current) {
+                    return;
+                }
+
+                setLeft((left) => left + e.movementX * 1);
+
+                let closestX = Number.MAX_SAFE_INTEGER;
+                let idx = 0;
+                for (const item of innerRef.current.children) {
+                    const rect = item.getBoundingClientRect();
+                    const rectDist = {
+                        x: Math.abs(rect.x + rect.width / 2 - center.x),
+                        y: Math.abs(rect.y + rect.height / 2 - center.y),
+                    };
+                    if (rectDist.x <= closestX) {
+                        closestX = rectDist.x;
+                        selected = idx;
+                    }
+                    idx++;
+                }
+
+                if (selected !== null) {
+                    setSelected(selected);
+                }
+            }
+
+            function handleUp() {
+                setIsMouseDown(false);
+                if (selected !== null) {
+                    onChange?.(selected);
+                }
+                slider?.removeEventListener("pointermove", handleMove);
+                slider?.removeEventListener("pointerup", handleUp);
+                slider?.removeEventListener("pointerleave", handleUp);
+            }
+
+            slider.addEventListener("pointermove", handleMove);
+            slider.addEventListener("pointerup", handleUp);
+            slider.addEventListener("pointerleave", handleUp);
+        }
+    }, [readonly, center, onChange]);
 
     useEffect(() => {
         const el = sliderRef.current;
@@ -86,68 +137,6 @@ export function SliderSelector({
             return () => el.removeEventListener("pointerdown", handleDown);
         }
     }, [handleDown]);
-
-    const handleMove = useCallback(
-        (e: MouseEvent) => {
-            console.log("move");
-            if (!isMouseDown || !innerRef.current) {
-                return;
-            }
-
-            setLeft((left) => left + e.movementX * 1.5);
-
-            let closestX = Number.MAX_SAFE_INTEGER;
-            let selected = null;
-            let idx = 0;
-            for (const item of innerRef.current.children) {
-                const rect = item.getBoundingClientRect();
-                const rectDist = {
-                    x: Math.abs(rect.x + rect.width / 2 - center.x),
-                    y: Math.abs(rect.y + rect.height / 2 - center.y),
-                };
-                if (rectDist.x <= closestX) {
-                    closestX = rectDist.x;
-                    selected = idx;
-                }
-                idx++;
-            }
-
-            if (selected !== null) {
-                setSelected(selected);
-            }
-        },
-        [isMouseDown, center],
-    );
-
-    useEffect(() => {
-        const el = sliderRef.current;
-        if (el) {
-            el.addEventListener("pointermove", handleMove);
-            return () => el.removeEventListener("pointermove", handleMove);
-        }
-    }, [handleMove]);
-
-    const handleUp = useCallback(() => {
-        if (!isMouseDown) {
-            return;
-        }
-        setIsMouseDown(false);
-        onChange?.(selected);
-
-        moveToTheEl();
-    }, [selected, onChange, isMouseDown, moveToTheEl]);
-
-    useEffect(() => {
-        const el = sliderRef.current;
-        if (el) {
-            el.addEventListener("pointerup", handleUp);
-            el.addEventListener("pointerleave", handleUp);
-            return () => {
-                el.removeEventListener("pointerup", handleUp);
-                el.removeEventListener("pointerleave", handleUp);
-            };
-        }
-    }, [handleUp]);
 
     return (
         <div className="slider-selector" ref={sliderRef}>
