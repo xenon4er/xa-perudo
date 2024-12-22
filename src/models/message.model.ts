@@ -1,9 +1,17 @@
-import {TGame} from "../game/Game";
-import {TPlayer} from "../game/Player";
-import {Bet} from "../types/types";
+import { Bet, TGame } from "../game/Game";
+import { TPlayer } from "../game/Player";
 
 export type ClientMessageBase<T = unknown> = {
-    type: "joinRequest" | "joinAccept" | "iAmHost" | "roll" | "restart" | "bet" | "check" | "revealDices" | "start";
+    type:
+        | "joinRequest"
+        | "joinAccept"
+        | "iAmHost"
+        | "roll"
+        | "restart"
+        | "bet"
+        | "check"
+        | "revealDices"
+        | "start";
     to?: string;
     data: T;
 };
@@ -14,9 +22,11 @@ export type ClientMessageJoinRequest = {
 
 export type ClientMessageJoinAccept = {
     type: "joinAccept";
-} & ClientMessageBase<{
-    player: TPlayer;
-} & Pick<TGame, "bet" | "turn" | "status" | "host">>;
+} & ClientMessageBase<
+    {
+        player: TPlayer;
+    } & Pick<TGame, "bet" | "turn" | "status" | "host">
+>;
 
 export type ClientMessageIAmHost = {
     type: "iAmHost";
@@ -44,12 +54,14 @@ export type ClientMessageRevealDices = {
 
 export type ClientMessageStart = {
     type: "start";
-} & ClientMessageBase<Pick<TGame, "turn"> & {
-    order: TPlayer["id"][];
-}>;
+} & ClientMessageBase<
+    Pick<TGame, "turn"> & {
+        order: TPlayer["id"][];
+    }
+>;
 
 export type ClientMessage =
-    ClientMessageJoinRequest
+    | ClientMessageJoinRequest
     | ClientMessageJoinAccept
     | ClientMessageIAmHost
     | ClientMessageRoll
@@ -72,11 +84,7 @@ export function clientMessageToString(message: ClientMessage): string {
 }
 
 export type ServerMessageBase<T = unknown> = {
-    type:
-        | "init"
-        | "leave"
-        | "error"
-        | "proxy";
+    type: "init" | "leave" | "error" | "proxy";
     data: T;
 };
 

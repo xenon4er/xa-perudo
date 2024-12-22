@@ -14,10 +14,14 @@
   width: 100%;
 }
 
-.info {
+.no-connection {
+  position: fixed;
+  inset: 0;
   display: flex;
-  box-shadow: 0 0 0.5rem var(--root-color);
+  flex-direction: column;
+  align-items: center;
   justify-content: center;
   gap: 0.5rem;
-  padding: 0.5rem;
+  background: rgba(0, 0, 0, 0.7);
+  z-index: 1000;
 }

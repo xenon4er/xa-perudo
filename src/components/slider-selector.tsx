@@ -1,4 +1,11 @@
-import { ReactElement, useCallback, useEffect, useRef, useState, cloneElement } from "react";
+import {
+    ReactElement,
+    useCallback,
+    useEffect,
+    useRef,
+    useState,
+    cloneElement,
+} from "react";
 import clsx from "clsx";
 
 import "./slider-selector.css";
@@ -18,7 +25,6 @@ export function SliderSelector({
     onChange?: (selectedIdx: number) => void;
     isInvalid?: boolean;
 }) {
-
     const [selected, setSelected] = useState(selectedIdx);
     const [left, setLeft] = useState(0);
     const [isMouseDown, setIsMouseDown] = useState(false);
@@ -40,11 +46,11 @@ export function SliderSelector({
                 y: boundRect.y + boundRect.height / 2,
             });
         };
-    
+
         handleResize();
         window.addEventListener("resize", handleResize);
         return () => window.removeEventListener("resize", handleResize);
-      }, []);
+    }, []);
 
     const moveToTheEl = useCallback(() => {
         if (!innerRef.current) {
@@ -83,6 +89,7 @@ export function SliderSelector({
 
     const handleMove = useCallback(
         (e: MouseEvent) => {
+            console.log("move");
             if (!isMouseDown || !innerRef.current) {
                 return;
             }
@@ -124,8 +131,8 @@ export function SliderSelector({
         if (!isMouseDown) {
             return;
         }
-        onChange?.(selected);
         setIsMouseDown(false);
+        onChange?.(selected);
 
         moveToTheEl();
     }, [selected, onChange, isMouseDown, moveToTheEl]);
@@ -151,16 +158,21 @@ export function SliderSelector({
                     left: left,
                 }}
             >
-                {children.map((el, idx) => cloneElement(el, {
-                    key: idx,
-                    className: clsx(el.props.className, "slider-selector__item", {
-                        _active: idx === selectedIdx,
-                        _highlight: idx === selected,
-                        _invalid: isInvalid,
+                {children.map((el, idx) =>
+                    cloneElement(el, {
+                        key: idx,
+                        className: clsx(
+                            el.props.className,
+                            "slider-selector__item",
+                            {
+                                _active: idx === selectedIdx,
+                                _highlight: idx === selected,
+                                _invalid: isInvalid,
+                            },
+                        ),
                     }),
-                }))}
+                )}
             </div>
-
         </div>
     );
 }

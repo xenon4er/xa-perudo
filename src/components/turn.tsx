@@ -1,9 +1,8 @@
 import { useContext, useMemo, useState } from "react";
-import { Bet } from "../types/types";
 import { BoardContext } from "../contexts/board-context";
 import { SliderSelector } from "./slider-selector";
 import { Dice } from "./dice";
-import {Game} from "../game/Game";
+import { Bet, Game } from "../game/Game";
 
 export function Turn({ game }: { game?: Game }) {
     const board = useContext(BoardContext);
@@ -47,7 +46,11 @@ export function Turn({ game }: { game?: Game }) {
     );
 
     const isValid = useMemo(() => {
-        if (!board.bet || board.turn !== board.me || board.status === "roundOver") {
+        if (
+            !board.bet ||
+            board.turn !== board.me ||
+            board.status === "roundOver"
+        ) {
             return true;
         }
 
@@ -84,17 +87,20 @@ export function Turn({ game }: { game?: Game }) {
 
     return (
         <>
-            {(board.turn === board.me && (board.status === "ready" ||
-                board.status === "roundOver")) && (
-                <button type="button" onClick={handleRoll}>
-                    Roll
-                </button>
-            )}
-            {(board.status === "inProgress" || board.status === "roundOver") && (
+            {board.turn === board.me &&
+                (board.status === "ready" || board.status === "roundOver") && (
+                    <button type="button" onClick={handleRoll}>
+                        Roll
+                    </button>
+                )}
+            {(board.status === "inProgress" ||
+                board.status === "roundOver") && (
                 <>
-                    
                     <SliderSelector
-                        readonly={board.turn !== board.me || board.status === "roundOver"}
+                        readonly={
+                            board.turn !== board.me ||
+                            board.status === "roundOver"
+                        }
                         selectedIdx={dicesCount.indexOf(bet.count)}
                         isInvalid={!isValid}
                         onChange={(index) =>
@@ -110,7 +116,10 @@ export function Turn({ game }: { game?: Game }) {
                     </SliderSelector>
 
                     <SliderSelector
-                        readonly={board.turn !== board.me || board.status === "roundOver"}
+                        readonly={
+                            board.turn !== board.me ||
+                            board.status === "roundOver"
+                        }
                         selectedIdx={dicesNominal.indexOf(bet.nominal)}
                         isInvalid={!isValid}
                         onChange={(index) =>
@@ -125,22 +134,28 @@ export function Turn({ game }: { game?: Game }) {
                         ))}
                     </SliderSelector>
 
-                    {board.turn && board.turn === board.me && board.status !== "roundOver" && (
-                        <div style={{
-                            display: "flex",
-                            gap: "0.5rem",
-                        }}>
-                            <button
-                                disabled={!isValid}
-                                onClick={() => handleBet(bet)}
+                    {board.turn &&
+                        board.turn === board.me &&
+                        board.status !== "roundOver" && (
+                            <div
+                                style={{
+                                    display: "flex",
+                                    gap: "0.5rem",
+                                }}
                             >
-                                Bet
-                            </button>
-                            {board.bet && (
-                                <button onClick={() => handleCheck()}>Check</button>
-                            )}
-                        </div>
-                    )}
+                                <button
+                                    disabled={!isValid}
+                                    onClick={() => handleBet(bet)}
+                                >
+                                    Bet
+                                </button>
+                                {board.bet && (
+                                    <button onClick={() => handleCheck()}>
+                                        Check
+                                    </button>
+                                )}
+                            </div>
+                        )}
                 </>
             )}
         </>

@@ -1,4 +1,4 @@
-import {RequiredFields} from "../types/common.types";
+import { RequiredFields } from "../types/common.types";
 
 export type TPlayer = {
     id: string;
@@ -14,15 +14,15 @@ export class Player {
     constructor(player: RequiredFields<Partial<TPlayer>, "id">) {
         this.id = player.id;
         this.name = player.name ?? "";
-        this.dices = player.dices ?? this.generateDices();
+        this.dices = player.dices ?? [];
     }
 
     setDices(dices: number[]): void {
         this.dices = dices;
     }
 
-    generateDices(): number[] {
-        return Array(5).fill(0);
+    generateDices(): void {
+        this.dices = Array(5).fill(0);
     }
 
     removeDice(): void {
@@ -33,7 +33,7 @@ export class Player {
         return this.dices.reduce((res, d) => {
             if (d === nominal || d === 1) {
                 res++;
-            } 
+            }
             return res;
         }, 0);
     }

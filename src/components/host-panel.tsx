@@ -1,9 +1,16 @@
-import { Fragment, useCallback, useContext, useEffect, useState, MouseEvent } from "react";
+import {
+    Fragment,
+    MouseEvent,
+    useCallback,
+    useContext,
+    useEffect,
+    useState,
+} from "react";
 import { BoardContext } from "../contexts/board-context";
-
+import { Game } from "../game/Game";
+import { PlayerIcon } from "./player-icon";
+import { TPlayer } from "../game/Player";
 import styles from "./host-panel.module.css";
-import {TPlayer} from "../game/Player";
-import {Game} from "../game/Game";
 
 export function HostPanel({
     game,
@@ -17,11 +24,11 @@ export function HostPanel({
 
     useEffect(() => {
         setOrder((order) => {
-            const players = new Set(board.players.map(p => p.id));
+            const players = new Set(board.players.map((p) => p.id));
             const checkedOrder = order.filter((p) => players.has(p));
-            const notInOrder = board.players.filter(
-                (p) => !order.includes(p.id),
-            ).map(p => p.id);
+            const notInOrder = board.players
+                .filter((p) => !order.includes(p.id))
+                .map((p) => p.id);
             return checkedOrder.concat(notInOrder);
         });
     }, [board]);
@@ -33,7 +40,6 @@ export function HostPanel({
     const handleStart = useCallback(() => {
         game?.doStart(order);
         onClose(null);
-
     }, [order, game, onClose]);
 
     const handleMoveToTop = (idx: number) => {
@@ -67,7 +73,9 @@ export function HostPanel({
             return (
                 <Fragment key={id}>
                     <div className={styles.player}>
-                        <div className={styles.name}>{id}</div>
+                        <div className={styles.name}>
+                            <PlayerIcon idx={id}></PlayerIcon>
+                        </div>
                     </div>
                     <div className={styles.order}>
                         {idx !== 0 && (
@@ -88,9 +96,12 @@ export function HostPanel({
 
     return (
         <div className={styles.wrapper} onClick={(e) => onClose(e)}>
-            <div className={styles.panel} onClick={(e) => {
-            e.stopPropagation();
-        }}>
+            <div
+                className={styles.panel}
+                onClick={(e) => {
+                    e.stopPropagation();
+                }}
+            >
                 <div className={styles.players}>{getPlayersList()}</div>
                 <div className={styles.controls}>
                     {board?.status === "initial" && (

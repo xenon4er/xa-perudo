@@ -1,6 +1,11 @@
-import { ClientMessage, clientMessageToString, ServerMessage, serverMessageToJSON } from "../models/message.model";
-import {RequiredFields} from "../types/common.types";
+import {
+    ClientMessage,
+    ServerMessage,
+    clientMessageToString,
+    serverMessageToJSON,
+} from "../models/message.model";
 import { Player, TPlayer } from "./Player";
+import { RequiredFields } from "../types/common.types";
 
 export type Bet = {
     nominal: number;
@@ -22,11 +27,6 @@ export interface TGame {
     turn: TPlayer["id"] | null;
     bet: Bet | null;
 }
-
-// export type GameEvent = {
-//     type: "",
-//     payload:
-// }
 
 export class Game {
     private players: Player[];
@@ -57,7 +57,7 @@ export class Game {
 
         this.socket.onclose = () => {
             this.onClose();
-        }
+        };
 
         this.socket.onmessage = (ev) => {
             const message = serverMessageToJSON(ev.data);
@@ -93,7 +93,7 @@ export class Game {
                 type: "iAmHost",
                 data: this.me!,
             },
-        })
+        });
     }
 
     doStart(order: TPlayer["id"][]): void {
@@ -160,17 +160,15 @@ export class Game {
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     onStateUpdate(_state: TGame): void {}
 
-    
     onOpen(): void {}
-    
+
     onClose(): void {}
 
     private onEvent(event: ClientMessage): void {
         if (this.socket.OPEN) {
-            this.socket.send(clientMessageToString(event))
+            this.socket.send(clientMessageToString(event));
         }
     }
-
 
     private join(input: RequiredFields<Partial<TPlayer>, "id">): Player {
         const player = new Player(input);
@@ -219,7 +217,7 @@ export class Game {
     }
 
     private getMe(isSecure = true): TPlayer {
-        const me = this.players.find(p => p.id === this.me);
+        const me = this.players.find((p) => p.id === this.me);
         return me!.getPlayer(isSecure);
     }
 
@@ -228,17 +226,17 @@ export class Game {
             bet: this.bet,
             host: this.host,
             me: this.me,
-            players: this.players.map(p => p.getPlayer(false)),
+            players: this.players.map((p) => p.getPlayer(false)),
             status: this.status,
             turn: this.turn,
-        }
+        };
     }
 
     private getNextPlayerId(
         id: Player["id"],
         players: Player[],
     ): TPlayer["id"] {
-        const idx = players.findIndex(p => p.id === id);
+        const idx = players.findIndex((p) => p.id === id);
         const nextIdx = (idx + 1) % players.length;
         const nextId = players[nextIdx].id;
         if (players[nextIdx].dices.length) {
@@ -252,7 +250,7 @@ export class Game {
         id: Player["id"],
         players: Player[],
     ): TPlayer["id"] {
-        const idx = players.findIndex(p => p.id === id);
+        const idx = players.findIndex((p) => p.id === id);
         const prevIdx = (players.length + idx - 1) % players.length;
         const prevId = players[prevIdx].id;
         if (players[prevIdx].dices.length) {
@@ -283,7 +281,7 @@ export class Game {
                 this.onEvent({
                     type: "joinRequest",
                     data: player,
-                })
+                });
                 break;
             }
             case "leave": {
@@ -295,7 +293,7 @@ export class Game {
                 console.log("proxy", clientMessage);
                 switch (clientMessage.type) {
                     case "joinRequest": {
-                        this.join(clientMessage.data)
+                        this.join(clientMessage.data);
                         this.onEvent({
                             type: "joinAccept",
                             to: clientMessage.data.id,
@@ -304,14 +302,21 @@ export class Game {
                                 bet: this.bet,
                                 status: this.status,
                                 turn: this.turn,
-                                player: this.getMe(!["gameOver", "roundOver"].includes(this.status)),
+                                player: this.getMe(
+                                    !["gameOver", "roundOver"].includes(
+                                        this.status,
+                                    ),
+                                ),
                             },
-                        })
+                        });
                         break;
                     }
                     case "joinAccept": {
                         this.join(clientMessage.data.player);
-                        if (clientMessage.data.player.id === clientMessage.data.host) {
+                        if (
+                            clientMessage.data.player.id ===
+                            clientMessage.data.host
+                        ) {
                             this.setBet(clientMessage.data.bet);
                             this.setHost(clientMessage.data.host);
                             this.setStatus(clientMessage.data.status);
@@ -324,7 +329,9 @@ export class Game {
                         break;
                     }
                     case "roll": {
-                        const turnPlayer = this.players.find(p => p.id === this.turn);
+                        const turnPlayer = this.players.find(
+                            (p) => p.id === this.turn,
+                        );
                         if (this.status === "roundOver") {
                             turnPlayer?.removeDice();
                         }
@@ -354,7 +361,7 @@ export class Game {
                     }
                     case "check": {
                         const dices = this.getMe(false).dices;
-                        if (dices.length) {                            
+                        if (dices.length) {
                             const message: ClientMessage = {
                                 type: "revealDices",
                                 data: {
@@ -367,7 +374,9 @@ export class Game {
                         break;
                     }
                     case "revealDices": {
-                        const p = this.players.find(p => p.id === clientMessage.data.id);
+                        const p = this.players.find(
+                            (p) => p.id === clientMessage.data.id,
+                        );
                         p?.setDices(clientMessage.data.dices);
                         console.log(clientMessage.data);
                         if (
@@ -378,22 +387,23 @@ export class Game {
                             const bet = this.bet;
                             if (!bet) {
                                 return;
-                            } 
-            
+                            }
+
                             const isLier =
                                 bet.count >
                                 this.players.reduce(
                                     (res, p) =>
                                         res +
-                                        p.getDicesWithNominal(
-                                            bet.nominal,
-                                        ),
+                                        p.getDicesWithNominal(bet.nominal),
                                     0,
                                 );
-            
+
                             let turn = null;
                             if (isLier) {
-                                turn = this.getPrevPlayerId(this.turn!, this.players);
+                                turn = this.getPrevPlayerId(
+                                    this.turn!,
+                                    this.players,
+                                );
                             }
                             this.setStatus("roundOver");
                             if (turn) {
@@ -405,14 +415,15 @@ export class Game {
                     case "start": {
                         this.setTurn(clientMessage.data.turn);
                         this.setStatus("ready");
-                        this.changeOrder(clientMessage.data.order)
+                        this.changeOrder(clientMessage.data.order);
+                        this.players.forEach((p) => p.generateDices());
                         break;
                     }
                     case "restart": {
                         this.setBet(null);
                         this.setTurn(null);
                         this.setStatus("initial");
-                        this.players.forEach(p => p.generateDices());
+                        this.players.forEach((p) => p.generateDices());
                     }
                 }
                 break;

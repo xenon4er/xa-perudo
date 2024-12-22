@@ -1,12 +1,12 @@
-import express, { Express } from "express";
 import { WebSocket, WebSocketServer } from "ws";
+import express, { Express } from "express";
+import { networkInterfaces } from "os";
 import http from "http";
-import { short } from "../src/utils/uuid";
 import {
     clientMessageToJSON,
     serverMessageToString,
 } from "../src/models/message.model";
-import { networkInterfaces } from "os";
+
 export type WebSocketExtra = {
     id?: string;
 } & WebSocket;
@@ -42,10 +42,22 @@ if (hostIdx !== -1) {
     }
 }
 
+function getId(clients: Set<WebSocketExtra>): string {
+    const clientsIds = new Set();
+    clients.forEach((c) => clientsIds.add(c.id));
+
+    let i = 0;
+    while (clientsIds.has(i.toString())) {
+        i++;
+    }
+
+    return i.toString();
+}
+
 wss.on("connection", (ws: WebSocketExtra) => {
     console.log("New connection");
 
-    ws.id = short();
+    ws.id = getId(wss.clients);
     ws.send(
         serverMessageToString({
             type: "init",
