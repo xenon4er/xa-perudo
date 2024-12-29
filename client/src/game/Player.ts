@@ -1,10 +1,5 @@
 import { RequiredFields } from "../types/common.types";
-
-export type TPlayer = {
-    id: string;
-    name: string;
-    dices: number[];
-};
+import { TPlayer } from "../types/game.type";
 
 export class Player {
     id: string;

@@ -5,7 +5,9 @@ import http from "http";
 import {
     clientMessageToJSON,
     serverMessageToString,
-} from "../src/models/message.model";
+} from "./utils/message.utils";
+import { join, dirname } from "path";
+import { fileURLToPath } from "url";
 
 export type WebSocketExtra = {
     id?: string;
@@ -16,7 +18,14 @@ const server = http.createServer(app);
 const wss = new WebSocketServer({ server });
 
 const portIdx = process.argv.indexOf("--port");
-const port = portIdx === -1 ? 3000 : parseInt(process.argv[portIdx + 1]);
+const port =
+    portIdx === -1
+        ? process.env.SERVER_PORT
+            ? parseInt(process.env.SERVER_PORT)
+            : 3000
+        : parseInt(process.argv[portIdx + 1]);
+
+const isDev = process.argv.indexOf("--prod") === -1;
 
 let host = "localhost";
 const hostIdx = process.argv.indexOf("--host");
@@ -54,6 +63,10 @@ function getId(clients: Set<WebSocketExtra>): string {
     return i.toString();
 }
 
+app.get("/ping", function (req, res) {
+    res.send("pong");
+});
+
 wss.on("connection", (ws: WebSocketExtra) => {
     console.log("New connection");
 
@@ -82,7 +95,7 @@ wss.on("connection", (ws: WebSocketExtra) => {
                     );
                 }
             });
-            console.log(JSON.stringify(message, null, 2));
+            if (isDev) console.log(JSON.stringify(message, null, 2));
         } catch (e) {
             console.log(e);
         }
@@ -116,6 +129,6 @@ wss.on("connection", (ws: WebSocketExtra) => {
     });
 });
 
-server.listen(port, host, () => {
+server.listen(port, "0.0.0.0", () => {
     console.log(`[server]: Server is running at http://${host}:${port}`);
 });

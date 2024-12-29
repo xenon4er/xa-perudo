@@ -2,7 +2,8 @@ import { useContext, useEffect, useMemo, useState } from "react";
 import { BoardContext } from "../contexts/board-context";
 import { SliderSelector } from "./slider-selector";
 import { Dice } from "./dice";
-import { Bet, Game } from "../game/Game";
+import { Game } from "../game/Game";
+import { Bet } from "../types/game.type";
 
 export function Turn({ game }: { game?: Game }) {
     const { bet, players, turn, me, status } = useContext(BoardContext);

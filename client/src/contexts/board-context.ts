@@ -1,5 +1,5 @@
+import { TGame } from "../types/game.type";
 import { createContext } from "react";
-import {TGame} from "../game/Game";
 
 export const BoardContext = createContext<TGame>({
     me: null,

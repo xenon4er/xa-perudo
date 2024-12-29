@@ -1,9 +1,10 @@
 import "./App.css";
 import { useEffect, useRef, useState } from "react";
-import { Game, TGame } from "./game/Game";
+import { Game } from "./game/Game";
 import { Board } from "./components/board";
 import { BoardContext } from "./contexts/board-context";
 import { HostPanel } from "./components/host-panel";
+import { TGame } from "./types/game.type";
 
 function App() {
     const [connection, setConnection] = useState(true);

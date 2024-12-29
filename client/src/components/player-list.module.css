@@ -43,3 +43,18 @@
         opacity: 0.5;
     }
 }
+
+.dices {
+    display: flex;
+    align-items: center;
+    gap: 0.3rem;
+}
+
+.dice {
+    &._active {
+        font-size: 1.3rem;
+        font-weight: bold;
+        text-shadow: rgb(121, 97, 4) 1px 0 5px;
+        /* color: green; */
+    }
+}

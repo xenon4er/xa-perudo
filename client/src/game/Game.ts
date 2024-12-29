@@ -1,32 +1,12 @@
 import {
-    ClientMessage,
-    ServerMessage,
     clientMessageToString,
     serverMessageToJSON,
-} from "../models/message.model";
-import { Player, TPlayer } from "./Player";
+} from "../utils/message.utils";
+import { Player } from "./Player";
 import { RequiredFields } from "../types/common.types";
-
-export type Bet = {
-    nominal: number;
-    count: number;
-};
-
-export type GameStatus =
-    | "initial"
-    | "ready"
-    | "inProgress"
-    | "roundOver"
-    | "gameOver";
-
-export interface TGame {
-    players: TPlayer[];
-    status: GameStatus;
-    me: TPlayer["id"] | null;
-    host: TPlayer["id"] | null;
-    turn: TPlayer["id"] | null;
-    bet: Bet | null;
-}
+import { Bet, GameStatus, TGame, TPlayer } from "../types/game.type";
+import { ServerMessage } from "../types/server-message.type";
+import { ClientMessage } from "../types/client-message.type";
 
 export class Game {
     private players: Player[];

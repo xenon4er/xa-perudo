@@ -1,5 +1,4 @@
-import { Bet, TGame } from "../game/Game";
-import { TPlayer } from "../game/Player";
+import { Bet, TGame, TPlayer } from "./game.type";
 
 export type ClientMessageBase<T = unknown> = {
     type:
@@ -70,57 +69,3 @@ export type ClientMessage =
     | ClientMessageCheck
     | ClientMessageRevealDices
     | ClientMessageStart;
-
-export function clientMessageToJSON(message: string): ClientMessage {
-    try {
-        return JSON.parse(message);
-    } catch (e) {
-        throw new Error(`Unable to parse client message. ${e}`);
-    }
-}
-
-export function clientMessageToString(message: ClientMessage): string {
-    return JSON.stringify(message);
-}
-
-export type ServerMessageBase<T = unknown> = {
-    type: "init" | "leave" | "error" | "proxy";
-    data: T;
-};
-
-export type ServerMessageInit = {
-    type: "init";
-} & ServerMessageBase<string>;
-
-export type ServerMessageLeave = {
-    type: "leave";
-} & ServerMessageBase<string>;
-
-export type ServerMessageError = {
-    type: "error";
-} & ServerMessageBase<{
-    status: number;
-    message: string;
-}>;
-
-export type ServerMessageProxy = {
-    type: "proxy";
-} & ServerMessageBase<ClientMessage>;
-
-export type ServerMessage =
-    | ServerMessageError
-    | ServerMessageInit
-    | ServerMessageLeave
-    | ServerMessageProxy;
-
-export function serverMessageToString(message: ServerMessage): string {
-    return JSON.stringify(message);
-}
-
-export function serverMessageToJSON(message: string): ServerMessage {
-    try {
-        return JSON.parse(message);
-    } catch (e) {
-        throw new Error(`Unable to parse server message. ${e}`);
-    }
-}

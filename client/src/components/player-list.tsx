@@ -1,10 +1,10 @@
 import { useContext, useEffect, useMemo, useRef, useState } from "react";
 import { BoardContext } from "../contexts/board-context";
 import { PlayerIcon } from "./player-icon";
-import { TPlayer } from "../game/Player";
 import clsx from "clsx";
 
 import styles from "./player-list.module.css";
+import { TPlayer } from "../types/game.type";
 
 export function Player({
     player,
@@ -13,7 +13,7 @@ export function Player({
     player: TPlayer;
     position: [number, number];
 }) {
-    const { turn, host, me, status } = useContext(BoardContext);
+    const { turn, host, me, status, bet } = useContext(BoardContext);
 
     return (
         <div
@@ -31,10 +31,19 @@ export function Player({
         >
             <div className={styles.name}>
                 <PlayerIcon idx={player.id}></PlayerIcon>
-                {/* {player.name || player.id} */}
             </div>
             <div className={styles.dices}>
-                {player.dices.map((v) => (v === 0 ? "*" : v)).join(" ")}
+                {player.dices.map((v, idx) => (
+                    <span
+                        key={`${idx}_${v}`}
+                        className={clsx(styles.dice, {
+                            [styles._active]:
+                                bet?.nominal && (v === bet.nominal || v === 1),
+                        })}
+                    >
+                        {v === 0 ? "*" : v}
+                    </span>
+                ))}
             </div>
         </div>
     );

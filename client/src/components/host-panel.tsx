@@ -9,8 +9,8 @@ import {
 import { BoardContext } from "../contexts/board-context";
 import { Game } from "../game/Game";
 import { PlayerIcon } from "./player-icon";
-import { TPlayer } from "../game/Player";
 import styles from "./host-panel.module.css";
+import { TPlayer } from "../types/game.type";
 
 export function HostPanel({
     game,
