@@ -1,11 +1,4 @@
-import {
-    Fragment,
-    MouseEvent,
-    useCallback,
-    useContext,
-    useEffect,
-    useState,
-} from "react";
+import { Fragment, useCallback, useContext, useEffect, useState } from "react";
 import { BoardContext } from "../contexts/board-context";
 import { Game } from "../game/Game";
 import { PlayerIcon } from "./player-icon";
@@ -17,7 +10,7 @@ export function HostPanel({
     onClose,
 }: {
     game?: Game;
-    onClose: (event: MouseEvent<HTMLElement> | null) => void;
+    onClose: () => void;
 }) {
     const { players, status } = useContext(BoardContext);
     const [order, setOrder] = useState<TPlayer["id"][]>([]);
@@ -39,7 +32,7 @@ export function HostPanel({
 
     const handleStart = useCallback(() => {
         game?.doStart(order);
-        onClose(null);
+        onClose();
     }, [order, game, onClose]);
 
     const handleMoveToTop = (idx: number) => {
@@ -95,21 +88,14 @@ export function HostPanel({
     }, [order]);
 
     return (
-        <div className={styles.wrapper} onClick={(e) => onClose(e)}>
-            <div
-                className={styles.panel}
-                onClick={(e) => {
-                    e.stopPropagation();
-                }}
-            >
-                <div className={styles.players}>{getPlayersList()}</div>
-                <div className={styles.controls}>
-                    {status === "initial" && (
-                        <button onClick={handleStart}>Start</button>
-                    )}
-                    <button onClick={handleRestart}>Restart</button>
-                </div>
+        <>
+            <div className={styles.players}>{getPlayersList()}</div>
+            <div className={styles.controls}>
+                {status === "initial" && (
+                    <button onClick={handleStart}>Start</button>
+                )}
+                <button onClick={handleRestart}>Restart</button>
             </div>
-        </div>
+        </>
     );
 }
