@@ -15,6 +15,10 @@ CMD [ "npm", "run", "dev" ]
 
 FROM development AS build
 
+ARG VITE_DEFAULT_LANG
+
+RUN echo "VITE_DEFAULT_LANG=${VITE_DEFAULT_LANG}" >> .env.production
+
 RUN npm run build
 
 FROM nginx:1.27-alpine

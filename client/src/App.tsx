@@ -9,6 +9,7 @@ import { Popup } from "./components/popup";
 import { SharePanel } from "./components/share-panel";
 import { logger } from "./utils/logging";
 import { useTranslation } from "react-i18next";
+import { LanguageSelector } from "./components/language-selector";
 
 function App() {
     const { t } = useTranslation();
@@ -103,6 +104,8 @@ function App() {
 
                 <div className="actions">
                     <div className="actions__left">
+                        <LanguageSelector></LanguageSelector>
+
                         {import.meta.env.DEV && (
                             <div>
                                 <button
