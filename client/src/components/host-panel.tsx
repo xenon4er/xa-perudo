@@ -4,6 +4,7 @@ import { Game } from "../game/Game";
 import { PlayerIcon } from "./player-icon";
 import styles from "./host-panel.module.css";
 import { TPlayer } from "../types/game.type";
+import { useTranslation } from "react-i18next";
 
 export function HostPanel({
     game,
@@ -12,6 +13,7 @@ export function HostPanel({
     game?: Game;
     onClose: () => void;
 }) {
+    const { t } = useTranslation();
     const { players, status } = useContext(BoardContext);
     const [order, setOrder] = useState<TPlayer["id"][]>([]);
 
@@ -92,9 +94,13 @@ export function HostPanel({
             <div className={styles.players}>{getPlayersList()}</div>
             <div className={styles.controls}>
                 {status === "initial" && (
-                    <button onClick={handleStart}>Start</button>
+                    <button onClick={handleStart}>
+                        {t("hostPanel.start")}
+                    </button>
                 )}
-                <button onClick={handleRestart}>Restart</button>
+                <button onClick={handleRestart}>
+                    {t("hostPanel.restart")}
+                </button>
             </div>
         </>
     );

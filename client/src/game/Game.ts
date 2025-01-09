@@ -7,6 +7,7 @@ import { RequiredFields } from "../types/common.types";
 import { Bet, GameStatus, TGame, TPlayer } from "../types/game.type";
 import { ServerMessage } from "../types/server-message.type";
 import { ClientMessage } from "../types/client-message.type";
+import { logger } from "../utils/logging";
 
 export class Game {
     private players: Player[];
@@ -270,7 +271,7 @@ export class Game {
             }
             case "proxy": {
                 const clientMessage = message.data;
-                console.log("proxy", clientMessage);
+                logger.log("proxy", clientMessage);
                 switch (clientMessage.type) {
                     case "joinRequest": {
                         this.join(clientMessage.data);
@@ -358,7 +359,7 @@ export class Game {
                             (p) => p.id === clientMessage.data.id,
                         );
                         p?.setDices(clientMessage.data.dices);
-                        console.log(clientMessage.data);
+
                         if (
                             this.players.every(
                                 (p) => !p.dices.some((d) => d === 0),

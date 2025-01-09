@@ -4,8 +4,10 @@ import { SliderSelector } from "./slider-selector";
 import { Dice } from "./dice";
 import { Game } from "../game/Game";
 import { Bet } from "../types/game.type";
+import { useTranslation } from "react-i18next";
 
 export function Turn({ game }: { game?: Game }) {
+    const { t } = useTranslation("translation", { keyPrefix: "turn" });
     const { bet, players, turn, me, status } = useContext(BoardContext);
     const [currentBet, setBet] = useState<Bet>({
         nominal: 1,
@@ -91,7 +93,7 @@ export function Turn({ game }: { game?: Game }) {
         <>
             {turn === me && (status === "ready" || status === "roundOver") && (
                 <button type="button" onClick={handleRoll}>
-                    Roll
+                    {t("roll")}
                 </button>
             )}
             {(status === "inProgress" || status === "roundOver") && (
@@ -139,11 +141,11 @@ export function Turn({ game }: { game?: Game }) {
                                 disabled={!isValid}
                                 onClick={() => handleBet(currentBet)}
                             >
-                                Bet
+                                {t("bet")}
                             </button>
                             {bet && (
                                 <button onClick={() => handleCheck()}>
-                                    Check
+                                    {t("check")}
                                 </button>
                             )}
                         </div>

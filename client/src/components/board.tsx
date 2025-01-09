@@ -1,8 +1,9 @@
-import { useContext, useEffect } from "react";
+import { useContext } from "react";
 import { PlayerList } from "./player-list";
 import { Turn } from "./turn";
 import { BoardContext } from "../contexts/board-context";
 import { Game } from "../game/Game";
+import { useTranslation } from "react-i18next";
 
 import styles from "./board.module.css";
 
@@ -14,10 +15,7 @@ export function Board({
     handleIAmHost: () => void;
 }) {
     const { host } = useContext(BoardContext);
-
-    useEffect(() => {
-        console.log("Board");
-    }, []);
+    const { t } = useTranslation();
 
     return (
         <div className={styles.board}>
@@ -26,7 +24,7 @@ export function Board({
             <div className={styles.actions}>
                 {!host && (
                     <button onClick={() => handleIAmHost()}>
-                        I AM THE HOST
+                        {t("board.iAmTheHost")}
                     </button>
                 )}
 

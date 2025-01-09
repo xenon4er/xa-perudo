@@ -1,6 +1,6 @@
 .players {
     display: grid;
-    grid-template-columns: repeat(2, minmax(min-content, max-content));
+    grid-template-columns: auto max-content;
     gap: 0.5rem;
 }
 

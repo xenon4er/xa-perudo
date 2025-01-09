@@ -6,8 +6,6 @@ import {
     clientMessageToJSON,
     serverMessageToString,
 } from "./utils/message.utils";
-import { join, dirname } from "path";
-import { fileURLToPath } from "url";
 
 export type WebSocketExtra = {
     id?: string;
@@ -25,30 +23,13 @@ const port =
             : 3000
         : parseInt(process.argv[portIdx + 1]);
 
-const isDev = process.argv.indexOf("--prod") === -1;
+const isDev = process.env.NODE_ENV !== "production";
 
-let host = "localhost";
-const hostIdx = process.argv.indexOf("--host");
-if (hostIdx !== -1) {
-    const nets = networkInterfaces();
-    const externalIpv4 = Object.values(nets).reduce(
-        (res: string[], interfaces) => {
-            if (interfaces) {
-                for (const i of interfaces) {
-                    if (!i.internal && i.family === "IPv4") {
-                        res.push(i.address);
-                    }
-                }
-            }
-            return res;
-        },
-        [],
-    );
-
-    console.info("External IPv4 addresses:", externalIpv4);
-    if (externalIpv4?.length) {
-        host = externalIpv4[0];
+function log(message?: any, ...optionalParams: any[]): void {
+    if (!isDev) {
+        return;
     }
+    console.log(message, optionalParams);
 }
 
 function getId(clients: Set<WebSocketExtra>): string {
@@ -68,7 +49,7 @@ app.get("/ping", function (req, res) {
 });
 
 wss.on("connection", (ws: WebSocketExtra) => {
-    console.log("New connection");
+    log("New connection");
 
     ws.id = getId(wss.clients);
     ws.send(
@@ -95,9 +76,9 @@ wss.on("connection", (ws: WebSocketExtra) => {
                     );
                 }
             });
-            if (isDev) console.log(JSON.stringify(message, null, 2));
+            log(JSON.stringify(message, null, 2));
         } catch (e) {
-            console.log(e);
+            console.error(e);
         }
     });
 
@@ -114,7 +95,7 @@ wss.on("connection", (ws: WebSocketExtra) => {
     });
 
     ws.on("close", (code, reason) => {
-        console.log(code, reason.toString());
+        log(code, reason.toString());
 
         wss.clients.forEach((client: WebSocketExtra) => {
             if (client.readyState === WebSocket.OPEN) {
@@ -130,5 +111,23 @@ wss.on("connection", (ws: WebSocketExtra) => {
 });
 
 server.listen(port, "0.0.0.0", () => {
-    console.log(`[server]: Server is running at http://${host}:${port}`);
+    const externalIpv4 = Object.values(networkInterfaces()).reduce(
+        (res: string[], interfaces) => {
+            if (interfaces) {
+                for (const i of interfaces) {
+                    if (!i.internal && i.family === "IPv4") {
+                        res.push(i.address);
+                    }
+                }
+            }
+            return res;
+        },
+        [],
+    );
+
+    console.info(`[server]: Server is running at:`);
+    console.info(`\thttp://localhost:${port}`);
+    for (const ip of externalIpv4) {
+        console.info(`\thttp://${ip}:${port}`);
+    }
 });

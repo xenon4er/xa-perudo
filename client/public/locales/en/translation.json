@@ -1,0 +1,17 @@
+{
+    "common": {
+        "noConnection": "No connection, reload the page"
+    },
+    "hostPanel": {
+        "start": "Start",
+        "restart": "Restart"
+    },
+    "board": {
+        "iAmTheHost": "I AM THE HOST"
+    },
+    "turn": {
+        "roll": "Roll",
+        "bet": "Bet",
+        "check": "Check"
+    }
+}

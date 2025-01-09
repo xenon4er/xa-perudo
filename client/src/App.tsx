@@ -7,8 +7,11 @@ import { HostPanel } from "./components/host-panel";
 import { TGame } from "./types/game.type";
 import { Popup } from "./components/popup";
 import { SharePanel } from "./components/share-panel";
+import { logger } from "./utils/logging";
+import { useTranslation } from "react-i18next";
 
 function App() {
+    const { t } = useTranslation();
     const [connection, setConnection] = useState(true);
     const [board, dispatch] = useState<TGame>(() => ({
         players: [],
@@ -27,7 +30,7 @@ function App() {
         const g = new Game();
 
         g.onStateUpdate = (msg) => {
-            console.log(msg);
+            logger.log(msg);
             dispatch(msg);
         };
 
@@ -37,7 +40,7 @@ function App() {
 
         g.onClose = () => {
             setConnection(false);
-            console.log("Connection closed");
+            logger.log("Connection closed");
         };
 
         game.current = g;
@@ -64,7 +67,7 @@ function App() {
 
                 {!connection && (
                     <div className="no-connection">
-                        No connection, reload the page
+                        {t("common.noConnection")}
                         <button onClick={() => window.location.reload()}>
                             <svg
                                 xmlns="http://www.w3.org/2000/svg"
@@ -104,8 +107,8 @@ function App() {
                             <div>
                                 <button
                                     onClick={() => {
-                                        console.log(board);
-                                        console.log(board.players);
+                                        logger.log(board);
+                                        logger.log(board.players);
                                     }}
                                 >
                                     <svg

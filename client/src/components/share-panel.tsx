@@ -13,7 +13,7 @@ export function SharePanel() {
         if (c.current) {
             QRCode.toCanvas(c.current, url, { width: 300 }, function (error) {
                 if (error) {
-                    console.log(error);
+                    console.error(error);
                 }
             });
         }
@@ -24,7 +24,7 @@ export function SharePanel() {
             await navigator.clipboard.writeText(url);
             setCopied(true);
         } catch (err) {
-            console.log(err);
+            console.error(err);
         }
     }
 

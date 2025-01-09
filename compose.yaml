@@ -1,5 +1,5 @@
 services:
-  client:
+  client-prod:
     build: 
       context: ./client
     ports:
@@ -7,12 +7,12 @@ services:
     environment: 
       NGINX_PORT: 5173 
     depends_on:
-      - server
+      - server-prod
     networks:
       - public
-  server:
+  server-prod:
     build:
-      context: server
+      context: ./server
       target: build
     environment:
       NODE_ENV: production

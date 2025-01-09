@@ -55,10 +55,6 @@ export function PlayerList() {
     const containerRef = useRef<HTMLDivElement>(null);
 
     useEffect(() => {
-        console.log("PlayerList");
-    }, []);
-
-    useEffect(() => {
         const handleResize = () => {
             const containerRect = containerRef.current?.getBoundingClientRect();
             if (containerRect) {

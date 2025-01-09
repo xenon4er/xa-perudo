@@ -1,4 +1,4 @@
-FROM node:lts AS build
+FROM node:lts-alpine AS build
 
 ENV CI=true
 ENV SERVER_PORT=3000
