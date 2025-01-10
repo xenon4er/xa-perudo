@@ -15,4 +15,7 @@ export const logger = {
             console.warn(message, optionalParams);
         }
     },
+    error: (message?: any, ...optionalParams: any[]) => {
+        console.error(message, optionalParams);
+    },
 };

@@ -12,4 +12,6 @@
     background: var(--root-background-color);
     padding: 1rem;
     border-radius: 0.5rem;
+    max-width: 95dvw;
+    max-height: 95dvh;
 }
