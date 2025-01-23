@@ -6,24 +6,22 @@ import { Game } from "../game/Game";
 import { Bet } from "../types/game.type";
 import { useTranslation } from "react-i18next";
 
-export function Turn({ game }: { game?: Game }) {
+function Dices({ game }: { game?: Game }) {
     const { t } = useTranslation("translation", { keyPrefix: "turn" });
     const { bet, players, turn, me, status } = useContext(BoardContext);
     const [currentBet, setBet] = useState<Bet>({
         nominal: 1,
         count: 1,
     });
+    const [isDirty, setIsDirty] = useState<boolean>(false);
 
     useEffect(() => {
+        setIsDirty(false);
         setBet({
             nominal: bet?.nominal ?? 1,
             count: bet?.count ?? 1,
         });
     }, [bet]);
-
-    function handleRoll(): void {
-        game?.doRoll();
-    }
 
     function handleBet(bet: Bet): void {
         game?.doBet(bet);
@@ -91,66 +89,81 @@ export function Turn({ game }: { game?: Game }) {
 
     return (
         <>
+            <SliderSelector
+                readonly={turn !== me || status === "roundOver"}
+                selectedIdx={dicesCount.indexOf(currentBet.count)}
+                isInvalid={!isValid && isDirty}
+                onChange={(index) => {
+                    setIsDirty(true);
+                    setBet((bet) => ({
+                        ...bet,
+                        count: dicesCount[index],
+                    }));
+                }}
+            >
+                {dicesCount.map((v) => (
+                    <Dice side={v} key={v} type="number"></Dice>
+                ))}
+            </SliderSelector>
+
+            <SliderSelector
+                readonly={turn !== me || status === "roundOver"}
+                selectedIdx={dicesNominal.indexOf(currentBet.nominal)}
+                isInvalid={!isValid && isDirty}
+                onChange={(index) => {
+                    setIsDirty(true);
+                    setBet((bet) => ({
+                        ...bet,
+                        nominal: dicesNominal[index],
+                    }));
+                }}
+            >
+                {dicesNominal.map((v) => (
+                    <Dice side={v} key={v} type="dot"></Dice>
+                ))}
+            </SliderSelector>
+
+            {turn && turn === me && status !== "roundOver" && (
+                <div
+                    style={{
+                        display: "flex",
+                        gap: "0.5rem",
+                    }}
+                >
+                    <button
+                        disabled={!isValid}
+                        onClick={() => handleBet(currentBet)}
+                    >
+                        {t("bet")}
+                    </button>
+                    {bet && (
+                        <button onClick={() => handleCheck()}>
+                            {t("check")}
+                        </button>
+                    )}
+                </div>
+            )}
+        </>
+    );
+}
+
+export function Turn({ game }: { game?: Game }) {
+    const { t } = useTranslation("translation", { keyPrefix: "turn" });
+    const { turn, me, status } = useContext(BoardContext);
+
+    function handleRoll(): void {
+        game?.doRoll();
+    }
+
+    return (
+        <>
             {turn === me && (status === "ready" || status === "roundOver") && (
                 <button type="button" onClick={handleRoll}>
                     {t("roll")}
                 </button>
             )}
             {(status === "inProgress" || status === "roundOver") && (
-                <>
-                    <SliderSelector
-                        readonly={turn !== me || status === "roundOver"}
-                        selectedIdx={dicesCount.indexOf(currentBet.count)}
-                        isInvalid={!isValid}
-                        onChange={(index) =>
-                            setBet((bet) => ({
-                                ...bet,
-                                count: dicesCount[index],
-                            }))
-                        }
-                    >
-                        {dicesCount.map((v) => (
-                            <Dice side={v} key={v} type="number"></Dice>
-                        ))}
-                    </SliderSelector>
-
-                    <SliderSelector
-                        readonly={turn !== me || status === "roundOver"}
-                        selectedIdx={dicesNominal.indexOf(currentBet.nominal)}
-                        isInvalid={!isValid}
-                        onChange={(index) =>
-                            setBet((bet) => ({
-                                ...bet,
-                                nominal: dicesNominal[index],
-                            }))
-                        }
-                    >
-                        {dicesNominal.map((v) => (
-                            <Dice side={v} key={v} type="dot"></Dice>
-                        ))}
-                    </SliderSelector>
-
-                    {turn && turn === me && status !== "roundOver" && (
-                        <div
-                            style={{
-                                display: "flex",
-                                gap: "0.5rem",
-                            }}
-                        >
-                            <button
-                                disabled={!isValid}
-                                onClick={() => handleBet(currentBet)}
-                            >
-                                {t("bet")}
-                            </button>
-                            {bet && (
-                                <button onClick={() => handleCheck()}>
-                                    {t("check")}
-                                </button>
-                            )}
-                        </div>
-                    )}
-                </>
+                <Dices game={game}></Dices>
             )}
         </>
     );
